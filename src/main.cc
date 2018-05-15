@@ -168,6 +168,7 @@ Handle<Value> construct_block_blob(const Arguments& args) {
         return except("Failed to parse block");
 
     b.nonce = nonce;
+    /*
     if (b.major_version >= BLOCK_MAJOR_VERSION_2) {
         block parent_block;
         b.parent_block.nonce = nonce;
@@ -177,7 +178,7 @@ Handle<Value> construct_block_blob(const Arguments& args) {
         if (!mergeBlocks(parent_block, b, std::vector<crypto::hash>()))
             return except("Failed to postprocess mining block");
     }
-
+    */
     if (!block_to_blob(b, output))
         return except("Failed to convert block to blob");
 
