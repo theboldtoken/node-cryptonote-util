@@ -143,20 +143,19 @@ Handle<Value> get_block_id(const Arguments& args) {
     return scope.Close(buff->handle_);
 }
 
-Handle<Value> construct_block_blob(const Arguments& args) {
-    HandleScope scope;
+void construct_block_blob(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 
-    if (args.Length() < 2)
-        return except("You must provide two arguments.");
+    if (info.Length() < 2)
+        return THROW_ERROR_EXCEPTION("You must provide two arguments.");
 
-    Local<Object> block_template_buf = args[0]->ToObject();
-    Local<Object> nonce_buf = args[1]->ToObject();
+    Local<Object> block_template_buf = info[0]->ToObject();
+    Local<Object> nonce_buf = info[1]->ToObject();
 
     if (!Buffer::HasInstance(block_template_buf) || !Buffer::HasInstance(nonce_buf))
-        return except("Both arguments should be buffer objects.");
+        return THROW_ERROR_EXCEPTION("Both arguments should be buffer objects.");
 
     if (Buffer::Length(nonce_buf) != 4)
-        return except("Nonce buffer has invalid size.");
+        return THROW_ERROR_EXCEPTION("Nonce buffer has invalid size.");
 
     uint32_t nonce = *reinterpret_cast<uint32_t*>(Buffer::Data(nonce_buf));
 
@@ -165,25 +164,23 @@ Handle<Value> construct_block_blob(const Arguments& args) {
 
     block b = AUTO_VAL_INIT(b);
     if (!parse_and_validate_block_from_blob(block_template_blob, b))
-        return except("Failed to parse block");
-
+        return THROW_ERROR_EXCEPTION("Failed to parse block");
     b.nonce = nonce;
-    /*
-    if (b.major_version >= BLOCK_MAJOR_VERSION_2) {
-        block parent_block;
-        b.parent_block.nonce = nonce;
-        if (!construct_parent_block(b, parent_block))
-            return except("Failed to construct parent block");
-
-        if (!mergeBlocks(parent_block, b, std::vector<crypto::hash>()))
-            return except("Failed to postprocess mining block");
+    if (b.major_version >= BLOCK_MAJOR_VERSION_3) {
+      block parent_block;
+      b.parent_block.nonce = nonce;
+      if (!construct_parent_block(b, parent_block))
+        return THROW_ERROR_EXCEPTION("Failed to construct parent block");
+      if (!mergeBlocks(parent_block, b, std::vector<crypto::hash>()))
+        return THROW_ERROR_EXCEPTION("Failed to postprocess mining block");
     }
-    */
     if (!block_to_blob(b, output))
-        return except("Failed to convert block to blob");
+        return THROW_ERROR_EXCEPTION("Failed to convert block to blob");
 
-    Buffer* buff = Buffer::New(output.data(), output.size());
-    return scope.Close(buff->handle_);
+    v8::Local<v8::Value> returnValue = Nan::CopyBuffer((char*)output.data(), output.size()).ToLocalChecked();
+    info.GetReturnValue().Set(
+        returnValue
+    );
 }
 
 Handle<Value> convert_blob_bb(const Arguments& args) {
