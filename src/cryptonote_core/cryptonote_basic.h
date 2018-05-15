@@ -22,6 +22,7 @@
 #include "cryptonote_config.h"
 #include "crypto/crypto.h"
 #include "crypto/hash.h"
+#include "crypto/cn_slow_hash.hpp"
 #include "misc_language.h"
 #include "tx_extra.h"
 
@@ -355,7 +356,7 @@ namespace cryptonote
   /*                                                                      */
   /************************************************************************/
 
-  const uint8_t CURRENT_BYTECOIN_BLOCK_MAJOR_VERSION = 1;
+  const uint8_t CURRENT_BYTECOIN_BLOCK_MAJOR_VERSION = 4;
 
   struct bytecoin_block
   {
@@ -456,14 +457,13 @@ namespace cryptonote
 
     BEGIN_SERIALIZE()
       VARINT_FIELD(major_version)
-      if(major_version > BLOCK_MAJOR_VERSION_5) return false;
       VARINT_FIELD(minor_version)
-      if (BLOCK_MAJOR_VERSION_1 == major_version)
+	  if (BLOCK_MINOR_VERSION_1 == minor_version)
       {
         VARINT_FIELD(timestamp)
       }
       FIELD(prev_id)
-      if (BLOCK_MAJOR_VERSION_1 == major_version)
+	  if (BLOCK_MINOR_VERSION_1 == minor_version)
       {
         FIELD(nonce)
       }
