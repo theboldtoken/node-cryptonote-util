@@ -38,12 +38,16 @@ blobdata uint64be_to_blob(uint64_t num) {
 static bool fillExtra(cryptonote::block& block1, const cryptonote::block& block2) {
     cryptonote::tx_extra_merge_mining_tag mm_tag;
     mm_tag.depth = 0;
-    if (!cryptonote::get_block_header_hash(block2, mm_tag.merkle_root))
+    if (!cryptonote::get_block_header_hash(block2, mm_tag.merkle_root)) {
+        return except("get_block_header_hash failed on fillExtra");
         return false;
+    }
 
     block1.miner_tx.extra.clear();
-    if (!cryptonote::append_mm_tag_to_extra(block1.miner_tx.extra, mm_tag))
+    if (!cryptonote::append_mm_tag_to_extra(block1.miner_tx.extra, mm_tag)) {
+        return except("append_mm_tag_to_extra failed on fillExtra");
         return false;
+    }
 
     return true;
 }
